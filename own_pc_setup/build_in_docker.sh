@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+IMAGE_NAME="ias0360-2026"
+CONTAINER_NAME="ias0360-2026"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONTAINER_HOME="/root"
+
+usage() {
+    echo "Usage: $0 [rebuild]"
+    echo "  (no args)  build the image if missing, then start/attach the container"
+    echo "  rebuild    stop+remove existing containers/image, rebuild, then attach"
+    exit 1
+}
+
+build_image() {
+    echo "Building Docker image '${IMAGE_NAME}'..."
+    docker build -t "${IMAGE_NAME}" "${SCRIPT_DIR}"
+}
+
+ARG="${1:-}"
+if [[ -n "${ARG}" && "${ARG}" != "rebuild" ]]; then
+    usage
+fi
+
+if [[ "${ARG}" == "rebuild" ]]; then
+    echo "Rebuild requested: removing existing containers and image..."
+
+    mapfile -t existing_containers < <(docker ps -aq --filter "ancestor=${IMAGE_NAME}")
+    if [[ ${#existing_containers[@]} -gt 0 ]]; then
+        docker rm -f "${existing_containers[@]}" >/dev/null
+    fi
+    if docker ps -a --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
+        docker rm -f "${CONTAINER_NAME}" >/dev/null
+    fi
+    if docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+        docker rmi -f "${IMAGE_NAME}" >/dev/null
+    fi
+
+    build_image
+fi
+
+if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
+    build_image
+fi
+
+if docker ps --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
+    echo "Container '${CONTAINER_NAME}' is already running, attaching..."
+    exec docker exec -it "${CONTAINER_NAME}" bash
+fi
+
+if docker ps -a --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
+    echo "Starting existing container '${CONTAINER_NAME}'..."
+    docker start "${CONTAINER_NAME}" >/dev/null
+    exec docker exec -it "${CONTAINER_NAME}" bash
+fi
+
+echo "Creating and starting container '${CONTAINER_NAME}'..."
+exec docker run -it \
+    --name "${CONTAINER_NAME}" \
+    --privileged \
+    --network host \
+    -v "${SCRIPT_DIR}:${CONTAINER_HOME}" \
+    -v /dev/bus/usb:/dev/bus/usb \
+    -w "${CONTAINER_HOME}" \
+    "${IMAGE_NAME}" \
+    bash
