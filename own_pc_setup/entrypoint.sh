@@ -4,9 +4,12 @@ set -euo pipefail
 ENV_FILE="${HOME}/.env"
 SSH_DIR="${HOME}/.ssh"
 KEY_FILE="${SSH_DIR}/id_ed25519"
-SUBMISSION_REPO_URL="git@github.com:taltech-eailab-courses/ci-test-hw-assign-submission.git"
+SUBMISSION_REPO_URLS=(
+    "git@github.com:taltech-eailab-courses/ias0360-home-assignment-1-submission-2026.git"
+    "git@github.com:taltech-eailab-courses/ias0360-home-assignment-2-submission-2026.git"
+    "git@github.com:taltech-eailab-courses/ias0360-home-assignment-3-submission-2026.git"
+)
 SUBMISSION_DIR="${HOME}/submission"
-SUBMISSION_REPO_DIR="${SUBMISSION_DIR}/$(basename "${SUBMISSION_REPO_URL}" .git)"
 
 # /root (and everything cloned under it) is a bind mount from the host, so
 # its UID won't match the container's root user — Git's ownership check
@@ -45,25 +48,32 @@ setup_git_ssh() {
     echo "Git identity: ${GIT_USER_NAME:-<unset>} <${GIT_USER_EMAIL:-<unset>}>"
 }
 
-clone_submission_repo() {
-    if [[ -d "${SUBMISSION_REPO_DIR}" ]]; then
-        echo "Submission repo already present at ${SUBMISSION_REPO_DIR}, skipping clone."
-        return 0
-    fi
-
+clone_submission_repos() {
     if [[ ! -f "${KEY_FILE}" ]]; then
-        echo "No SSH key configured — skipping submission repo clone (set SSH_PRIVATE_KEY in .env to enable it)."
+        echo "No SSH key configured — skipping submission repo clones (set SSH_PRIVATE_KEY in .env to enable it)."
         return 0
     fi
 
     mkdir -p "${SUBMISSION_DIR}"
 
-    echo "Cloning submission repo into ${SUBMISSION_REPO_DIR}..."
-    GIT_SSH_COMMAND="ssh -i ${KEY_FILE} -o BatchMode=yes -o StrictHostKeyChecking=accept-new" \
-        git clone "${SUBMISSION_REPO_URL}" "${SUBMISSION_REPO_DIR}"
+    local repo_url repo_dir
+    for repo_url in "${SUBMISSION_REPO_URLS[@]}"; do
+        repo_dir="${SUBMISSION_DIR}/$(basename "${repo_url}" .git)"
+
+        if [[ -d "${repo_dir}" ]]; then
+            echo "Submission repo already present at ${repo_dir}, skipping clone."
+            continue
+        fi
+
+        echo "Cloning submission repo into ${repo_dir}..."
+        if ! GIT_SSH_COMMAND="ssh -i ${KEY_FILE} -o BatchMode=yes -o StrictHostKeyChecking=accept-new" \
+            git clone "${repo_url}" "${repo_dir}"; then
+            echo "Warning: failed to clone ${repo_url}, continuing with the rest."
+        fi
+    done
 }
 
 setup_git_ssh || echo "Warning: git/SSH setup failed, continuing without it."
-clone_submission_repo || echo "Warning: submission repo clone failed, continuing without it."
+clone_submission_repos || echo "Warning: submission repo clones failed, continuing without them."
 
 exec "$@"
