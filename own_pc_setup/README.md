@@ -63,7 +63,7 @@ You don't need to rebuild the Docker image to start a new project — the image 
 - **Recommended:** Create your new application folder directly inside this home directory (next to `blink_example`). This way you can use the existing `flash.sh` script directly, since it's already in `~`.
 - **Alternative:** If you'd rather keep your project elsewhere (e.g. its own separate repo/directory), copy `build_in_docker.sh` and `flash.sh` into that directory. Since these scripts only interact with the already-built `ias0360-2026` image (they don't rebuild it or reference a Dockerfile), running them from a different directory will mount *that* directory as the container's home instead, giving you the same build/flash workflow.
 
-## Enabling BOOTSEL Over USB (No Physical Button)
+## Enabling BOOTSEL Over USB (No Physical Button) in your application.
 
 Add the following to your application to enable this feature.
 
@@ -88,3 +88,18 @@ int main() {
     // ... rest of the program
 }
 ```
+
+# ML model development (TensorFlow / TFLite Micro)
+
+The image ships a Python venv (`/opt/venv`, already on `PATH`) with TensorFlow, OpenCV (headless), NumPy, scikit-learn, and JupyterLab for training and converting TinyML models to run on the Pico via TFLite Micro.
+
+To launch notebooks, from inside the container:
+
+```
+jupyter lab --ip=0.0.0.0 --no-browser --allow-root
+```
+
+Since `build_in_docker.sh` runs the container with `--network host`, no port mapping is needed — open the `localhost:8888` URL it prints directly in your host browser. Alternatively, attach VS Code to the running
+container ("Dev Containers: Attach to Running Container") and point its Jupyter extension at that same server as a remote kernel.
+
+Use `xxd -i model.tflite > model.h` to turn a converted `.tflite` model into a C byte array for embedding in a Pico firmware project.
