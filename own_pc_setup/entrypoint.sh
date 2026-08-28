@@ -6,6 +6,7 @@ SSH_DIR="${HOME}/.ssh"
 KEY_FILE="${SSH_DIR}/id_ed25519"
 SUBMISSION_REPO_URL="git@github.com:taltech-eailab-courses/ci-test-hw-assign-submission.git"
 SUBMISSION_DIR="${HOME}/submission"
+SUBMISSION_REPO_DIR="${SUBMISSION_DIR}/$(basename "${SUBMISSION_REPO_URL}" .git)"
 
 # /root (and everything cloned under it) is a bind mount from the host, so
 # its UID won't match the container's root user — Git's ownership check
@@ -45,8 +46,8 @@ setup_git_ssh() {
 }
 
 clone_submission_repo() {
-    if [[ -d "${SUBMISSION_DIR}" ]]; then
-        echo "Submission repo already present at ${SUBMISSION_DIR}, skipping clone."
+    if [[ -d "${SUBMISSION_REPO_DIR}" ]]; then
+        echo "Submission repo already present at ${SUBMISSION_REPO_DIR}, skipping clone."
         return 0
     fi
 
@@ -55,9 +56,11 @@ clone_submission_repo() {
         return 0
     fi
 
-    echo "Cloning submission repo into ${SUBMISSION_DIR}..."
+    mkdir -p "${SUBMISSION_DIR}"
+
+    echo "Cloning submission repo into ${SUBMISSION_REPO_DIR}..."
     GIT_SSH_COMMAND="ssh -i ${KEY_FILE} -o BatchMode=yes -o StrictHostKeyChecking=accept-new" \
-        git clone "${SUBMISSION_REPO_URL}" "${SUBMISSION_DIR}"
+        git clone "${SUBMISSION_REPO_URL}" "${SUBMISSION_REPO_DIR}"
 }
 
 setup_git_ssh || echo "Warning: git/SSH setup failed, continuing without it."

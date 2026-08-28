@@ -18,7 +18,7 @@ cp .env.example .env
 
 `.env` is gitignored — it holds a real private key once filled in, so never commit it. Every time the container starts, `entrypoint.sh` reads `.env` and, if present: sets your git identity, and installs the key at `~/.ssh/id_ed25519` with `700`/`600` permissions plus GitHub's host key in `known_hosts`, so `git clone git@github.com:...` works right away. It only writes the key file once (it won't overwrite an existing `~/.ssh/id_ed25519`), and it's skipped entirely if `.env` is missing.
 
-Once the SSH key is in place, `entrypoint.sh` also clones your submission repo (`git@github.com:taltech-eailab-courses/ci-test-hw-assign-submission.git`) into `~/submission` — i.e. `submission/` in the repo root, since that's your home directory inside the container. This only happens once; if `submission/` already exists, it's left alone on subsequent container starts. `submission/` is its own git repository and is gitignored here — it isn't tracked as part of this repo.
+Once the SSH key is in place, `entrypoint.sh` also clones your submission repo (`git@github.com:taltech-eailab-courses/ci-test-hw-assign-submission.git`) into `~/submission/ci-test-hw-assign-submission` — i.e. `submission/ci-test-hw-assign-submission/` in the repo root, since that's your home directory inside the container. `submission/` is just a holding folder — each repo cloned there lands in its own subdirectory named after the repo, so more can be added later without colliding. Cloning only happens once per repo; if its subdirectory already exists, it's left alone on subsequent container starts. Everything under `submission/` is its own git repository and is gitignored here — none of it is tracked as part of this repo.
 
 ### Building the Docker Image
 
