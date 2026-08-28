@@ -4,6 +4,8 @@ set -euo pipefail
 ENV_FILE="${HOME}/.env"
 SSH_DIR="${HOME}/.ssh"
 KEY_FILE="${SSH_DIR}/id_ed25519"
+SUBMISSION_REPO_URL="git@github.com:taltech-eailab-courses/ci-test-hw-assign-submission.git"
+SUBMISSION_DIR="${HOME}/submission"
 
 # /root (and everything cloned under it) is a bind mount from the host, so
 # its UID won't match the container's root user — Git's ownership check
@@ -42,6 +44,23 @@ setup_git_ssh() {
     echo "Git identity: ${GIT_USER_NAME:-<unset>} <${GIT_USER_EMAIL:-<unset>}>"
 }
 
+clone_submission_repo() {
+    if [[ -d "${SUBMISSION_DIR}" ]]; then
+        echo "Submission repo already present at ${SUBMISSION_DIR}, skipping clone."
+        return 0
+    fi
+
+    if [[ ! -f "${KEY_FILE}" ]]; then
+        echo "No SSH key configured — skipping submission repo clone (set SSH_PRIVATE_KEY in .env to enable it)."
+        return 0
+    fi
+
+    echo "Cloning submission repo into ${SUBMISSION_DIR}..."
+    GIT_SSH_COMMAND="ssh -i ${KEY_FILE} -o BatchMode=yes -o StrictHostKeyChecking=accept-new" \
+        git clone "${SUBMISSION_REPO_URL}" "${SUBMISSION_DIR}"
+}
+
 setup_git_ssh || echo "Warning: git/SSH setup failed, continuing without it."
+clone_submission_repo || echo "Warning: submission repo clone failed, continuing without it."
 
 exec "$@"

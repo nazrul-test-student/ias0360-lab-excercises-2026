@@ -4,6 +4,7 @@ set -euo pipefail
 IMAGE_NAME="ias0360-2026"
 CONTAINER_NAME="ias0360-2026"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOCKER_CONTEXT="${SCRIPT_DIR}/own_pc_setup"
 CONTAINER_HOME="/root"
 
 usage() {
@@ -16,7 +17,7 @@ usage() {
 
 build_image() {
     echo "Building Docker image '${IMAGE_NAME}'..."
-    docker build -t "${IMAGE_NAME}" "${SCRIPT_DIR}"
+    docker build -t "${IMAGE_NAME}" "${DOCKER_CONTEXT}"
 }
 
 ARG="${1:-}"
