@@ -7,9 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONTAINER_HOME="/root"
 
 usage() {
-    echo "Usage: $0 [rebuild]"
+    echo "Usage: $0 [rebuild|stop]"
     echo "  (no args)  build the image if missing, then start/attach the container"
     echo "  rebuild    stop+remove existing containers/image, rebuild, then attach"
+    echo "  stop       stop the running container, if any, and exit"
     exit 1
 }
 
@@ -19,8 +20,18 @@ build_image() {
 }
 
 ARG="${1:-}"
-if [[ -n "${ARG}" && "${ARG}" != "rebuild" ]]; then
+if [[ -n "${ARG}" && "${ARG}" != "rebuild" && "${ARG}" != "stop" ]]; then
     usage
+fi
+
+if [[ "${ARG}" == "stop" ]]; then
+    if docker ps --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
+        echo "Stopping container '${CONTAINER_NAME}'..."
+        docker stop "${CONTAINER_NAME}" >/dev/null
+    else
+        echo "Container '${CONTAINER_NAME}' is not running."
+    fi
+    exit 0
 fi
 
 if [[ "${ARG}" == "rebuild" ]]; then
