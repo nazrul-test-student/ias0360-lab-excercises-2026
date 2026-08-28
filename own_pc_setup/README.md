@@ -2,6 +2,20 @@
 
 These instructions will help you set up the build environment needed to build and deploy applications to the Pico using a Docker container.
 
+## Git & SSH Setup
+
+Copy `.env.example` to `.env` and fill in your own details:
+
+```bash
+cp .env.example .env
+```
+
+- `GIT_USER_NAME` / `GIT_USER_EMAIL` — used to run `git config --global` inside the container.
+- `GITHUB_USERNAME` — your GitHub username, for reference.
+- `SSH_PRIVATE_KEY` — an SSH private key (e.g. `cat ~/.ssh/id_ed25519`) authorized on your GitHub account, pasted in quotes exactly as it appears including the `BEGIN`/`END` lines.
+
+`.env` is gitignored — it holds a real private key once filled in, so never commit it. Every time the container starts, `entrypoint.sh` reads `.env` and, if present: sets your git identity, and installs the key at `~/.ssh/id_ed25519` with `700`/`600` permissions plus GitHub's host key in `known_hosts`, so `git clone git@github.com:...` works right away. It only writes the key file once (it won't overwrite an existing `~/.ssh/id_ed25519`), and it's skipped entirely if `.env` is missing.
+
 ## Building the Docker Image
 
 Once you've cloned this repo, make sure you're in this directory in a console/terminal, then run:
