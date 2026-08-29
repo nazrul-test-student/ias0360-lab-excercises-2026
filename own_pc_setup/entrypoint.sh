@@ -11,9 +11,6 @@ SUBMISSION_REPO_URLS=(
 )
 SUBMISSION_DIR="${HOME}/submission"
 
-# /root (and everything cloned under it) is a bind mount from the host, so
-# its UID won't match the container's root user — Git's ownership check
-# would otherwise refuse to touch any repo in here.
 git config --global --add safe.directory '*' || true
 
 setup_git_ssh() {
@@ -72,6 +69,15 @@ clone_submission_repos() {
         fi
     done
 }
+
+if [[ -z "${ENTRYPOINT_DROPPED:-}" && -n "${HOST_UID:-}" && -n "${HOST_GID:-}" && "${HOST_UID}" != "0" ]]; then
+    if [[ -d /dev/bus/usb ]]; then
+        chmod -R o+rw /dev/bus/usb 2>/dev/null || true
+    fi
+
+    export ENTRYPOINT_DROPPED=1
+    exec setpriv --reuid="${HOST_UID}" --regid="${HOST_GID}" --clear-groups --no-new-privs "$0" "$@"
+fi
 
 setup_git_ssh || echo "Warning: git/SSH setup failed, continuing without it."
 clone_submission_repos || echo "Warning: submission repo clones failed, continuing without them."

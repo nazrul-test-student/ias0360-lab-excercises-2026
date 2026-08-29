@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+.ssh/
+id_ed25519*
+*.pem

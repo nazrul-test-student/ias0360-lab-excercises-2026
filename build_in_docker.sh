@@ -8,9 +8,14 @@ DOCKER_CONTEXT="${SCRIPT_DIR}/own_pc_setup"
 CONTAINER_HOME="/root"
 
 usage() {
-    echo "Usage: $0 [rebuild|stop]"
-    echo "  (no args)  build the image if missing, then start/attach the container"
-    echo "  rebuild    stop+remove existing containers/image, rebuild, then attach"
+    echo "Usage: $0 [rebuild|shell|stop]"
+    echo "  (no args)  build the image if missing, then run a fresh container"
+    echo "             (kills and replaces any container already using this name,"
+    echo "             even a still-running one — never attaches silently)"
+    echo "  rebuild    stop+remove existing containers/image, rebuild, then run a fresh container"
+    echo "  shell      open an additional terminal into the container you already have"
+    echo "             running (e.g. to run Jupyter and Pico builds side by side);"
+    echo "             fails if none is running — start one with a plain '$0' first"
     echo "  stop       stop the running container, if any, and exit"
     exit 1
 }
@@ -21,8 +26,24 @@ build_image() {
 }
 
 ARG="${1:-}"
-if [[ -n "${ARG}" && "${ARG}" != "rebuild" && "${ARG}" != "stop" ]]; then
+if [[ -n "${ARG}" && "${ARG}" != "rebuild" && "${ARG}" != "stop" && "${ARG}" != "shell" ]]; then
     usage
+fi
+
+if [[ "${ARG}" == "shell" ]]; then
+    if ! docker ps --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
+        echo "No running container named '${CONTAINER_NAME}'. Start one with '$0' first."
+        exit 1
+    fi
+
+    running_mount_src="$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "'"${CONTAINER_HOME}"'"}}{{.Source}}{{end}}{{end}}' "${CONTAINER_NAME}")"
+    if [[ "${running_mount_src}" != "${SCRIPT_DIR}" ]]; then
+        echo "A container named '${CONTAINER_NAME}' is running, but it's bound to a different directory — it isn't yours, refusing to attach."
+        echo "If it's an abandoned session from someone else, a plain '$0' will replace it."
+        exit 1
+    fi
+
+    exec docker exec -it --user "$(id -u):$(id -g)" "${CONTAINER_NAME}" bash
 fi
 
 if [[ "${ARG}" == "stop" ]]; then
@@ -56,22 +77,18 @@ if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
     build_image
 fi
 
-if docker ps --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
-    echo "Container '${CONTAINER_NAME}' is already running, attaching..."
-    exec docker exec -it "${CONTAINER_NAME}" bash
-fi
 
 if docker ps -a --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
-    echo "Starting existing container '${CONTAINER_NAME}'..."
-    docker start "${CONTAINER_NAME}" >/dev/null
-    exec docker exec -it "${CONTAINER_NAME}" bash
+    docker rm -f "${CONTAINER_NAME}" >/dev/null
 fi
 
 echo "Creating and starting container '${CONTAINER_NAME}'..."
-exec docker run -it \
+exec docker run -it --rm \
     --name "${CONTAINER_NAME}" \
     --privileged \
     --network host \
+    -e "HOST_UID=$(id -u)" \
+    -e "HOST_GID=$(id -g)" \
     -v "${SCRIPT_DIR}:${CONTAINER_HOME}" \
     -v /dev/bus/usb:/dev/bus/usb \
     -w "${CONTAINER_HOME}" \

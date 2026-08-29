@@ -35,15 +35,14 @@ coverage.xml
 build/
 build_*/
 
-# Locally cloned dependencies, kept out of version control
-# Cloning a repo into a folder here does NOT make it a git submodule automatically —
-# it becomes a nested/embedded git repo that `git add` can't track properly (no
-# .gitmodules entry). If you need a local checkout instead of the one already baked
-# into the Docker image, keep it untracked (listed below), or use
-# `git submodule add <url> <path>` if you actually want it registered as a submodule.
+
 /pico-sdk/
 /picotool/
 
 # Auto-cloned by entrypoint.sh on container start — a separate repo in its
 # own right, not part of this one.
 /submission/
+
+# Written by entrypoint.sh from SSH_PRIVATE_KEY in .env — contains a real
+# private key, must never be committed.
+/.ssh/

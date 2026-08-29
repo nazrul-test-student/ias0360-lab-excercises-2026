@@ -37,7 +37,8 @@ chmod +x build_in_docker.sh
 
 This will initially build and install a Docker image named `ias0360-2026` on your PC, then open an interactive shell by spinning up a container from that image. The image itself is defined by the `Dockerfile` and `entrypoint.sh` in `own_pc_setup/`, which `build_in_docker.sh` uses as the Docker build context.
 
-- Running `./build_in_docker.sh` again (without arguments) will attach a new shell to the already-running container.
+- Running `./build_in_docker.sh` again (without arguments) always starts a fresh container — if one under this name is already running (e.g. left over from another user on a shared PC), it's stopped and replaced rather than reused.
+- Passing the `shell` argument opens an additional terminal into the container you already have running (e.g. to run Jupyter and a Pico build side by side); it fails if none is running — start one with a plain `./build_in_docker.sh` first.
 - Passing the `stop` argument will stop the running container.
 - Passing the `rebuild` argument will stop the running container, delete the image, and rebuild it from scratch.
 
