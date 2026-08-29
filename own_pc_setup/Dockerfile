@@ -29,6 +29,7 @@ RUN python3 -m venv "${VIRTUAL_ENV}"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 RUN pip install --no-cache-dir \
+        pyserial \
         numpy \
         pandas \
         matplotlib \
