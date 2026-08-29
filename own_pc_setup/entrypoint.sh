@@ -108,12 +108,15 @@ if [[ -z "${ENTRYPOINT_DROPPED:-}" && -n "${HOST_UID:-}" && -n "${HOST_GID:-}" &
         chmod -R o+rw /dev/bus/usb 2>/dev/null || true
     fi
 
-    # KEY_DIR lives in the image's own /opt, which is root-owned (mode 755)
-    # by default — create it and hand it to the student's UID now, while
-    # still root, so the unprivileged process below can write into it.
+    # KEY_DIR, and Jupyter's config/data/runtime dirs, all live in the
+    # image's own /opt, root-owned (mode 755) by the Dockerfile's build-time
+    # `mkdir`. Hand them to the student's UID now, while still root, so the
+    # unprivileged process below (including `jupyter lab`, run interactively
+    # from the shell, not by this script) can write into them.
     mkdir -p "${KEY_DIR}"
     chown "${HOST_UID}:${HOST_GID}" "${KEY_DIR}"
     chmod 700 "${KEY_DIR}"
+    chown "${HOST_UID}:${HOST_GID}" "${JUPYTER_CONFIG_DIR}" "${JUPYTER_DATA_DIR}" "${JUPYTER_RUNTIME_DIR}" 2>/dev/null || true
 
     export ENTRYPOINT_DROPPED=1
     exec setpriv --reuid="${HOST_UID}" --regid="${HOST_GID}" --clear-groups --no-new-privs "$0" "$@"
