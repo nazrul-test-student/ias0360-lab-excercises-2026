@@ -47,24 +47,16 @@
 4. Build and flash `main_uart_inference`, then use `host_scripts/send_image.py`
    from your computer to send real images and get predictions back:
    ```
-   pip install pyserial numpy pillow
+   cp ~root/.keras/datasets/mnist.npz .
    python host_scripts/send_image.py /dev/ttyACM0 --npz mnist_cache.npz --index 42
    python host_scripts/send_image.py /dev/ttyACM0 --png my_own_digit.png
    ```
 5. **Optional, if you have the LCD touchscreen:** build and flash `main` for
    the interactive drawing version.
 
-```
-mkdir build && cd build
-cmake -DPICO_SDK_PATH=/path/to/pico-sdk ..
-make -j4
-```
-
 This produces a separate `.uf2` for each target above (`main.uf2`,
 `main_arena_size_test.uf2`, `main_inference_test.uf2`,
-`main_uart_inference.uf2`) — hold BOOTSEL while plugging in the Pico, then
-drag the relevant `.uf2` onto the mounted drive to flash. Only one can run
-on the Pico at a time; reflash to switch.
+`main_uart_inference.uf2`).
 
 ## The uart_inference protocol
 
