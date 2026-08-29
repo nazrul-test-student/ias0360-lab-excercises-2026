@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 # Pico W (RP2040 + CYW43439 wireless chip). Must be set before
-# include(pico_sdk_import.cmake) — the SDK defaults/caches the board as
+# include(pico_sdk_import.cmake) - the SDK defaults/caches the board as
 # soon as that file is included, so setting it later has no effect.
 set(PICO_BOARD pico_w CACHE STRING "Board type")
 

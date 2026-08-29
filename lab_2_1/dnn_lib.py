@@ -172,7 +172,7 @@ def compute_metrics(y_true, y_pred):
     """Compute accuracy, precision, recall and F1 from a confusion matrix.
 
     This matters on this dataset specifically because "Occupied" is a
-    minority class (~21% of rows) — a model that always predicts "not
+    minority class (~21% of rows) - a model that always predicts "not
     occupied" would already score ~79% accuracy while being useless.
     Precision/recall/F1 expose that in a way plain accuracy doesn't.
 

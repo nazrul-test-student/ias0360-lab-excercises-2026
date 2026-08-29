@@ -11,11 +11,11 @@ usage() {
     echo "Usage: $0 [rebuild|shell|stop]"
     echo "  (no args)  build the image if missing, then run a fresh container"
     echo "             (kills and replaces any container already using this name,"
-    echo "             even a still-running one — never attaches silently)"
+    echo "             even a still-running one - never attaches silently)"
     echo "  rebuild    stop+remove existing containers/image, rebuild, then run a fresh container"
     echo "  shell      open an additional terminal into the container you already have"
     echo "             running (e.g. to run Jupyter and Pico builds side by side);"
-    echo "             fails if none is running — start one with a plain '$0' first"
+    echo "             fails if none is running - start one with a plain '$0' first"
     echo "  stop       stop the running container, if any, and exit"
     exit 1
 }
@@ -38,7 +38,7 @@ if [[ "${ARG}" == "shell" ]]; then
 
     running_mount_src="$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "'"${CONTAINER_HOME}"'"}}{{.Source}}{{end}}{{end}}' "${CONTAINER_NAME}")"
     if [[ "${running_mount_src}" != "${SCRIPT_DIR}" ]]; then
-        echo "A container named '${CONTAINER_NAME}' is running, but it's bound to a different directory — it isn't yours, refusing to attach."
+        echo "A container named '${CONTAINER_NAME}' is running, but it's bound to a different directory - it isn't yours, refusing to attach."
         echo "If it's an abandoned session from someone else, a plain '$0' will replace it."
         exit 1
     fi

@@ -13,7 +13,7 @@ named exactly:
   digit_9.png
 
 Any common image format works (.png, .jpg) as long as your preprocessing
-function in the notebook (Step 3) opens the matching extension — PNG is
+function in the notebook (Step 3) opens the matching extension - PNG is
 recommended. The notebook's preprocessing function will convert these to
 grayscale, resize to 28x28, invert them, and normalize them to match MNIST's
 format.

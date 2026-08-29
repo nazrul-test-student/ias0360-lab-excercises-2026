@@ -4,7 +4,7 @@ set -euo pipefail
 ENV_FILE="${HOME}/.env"
 SSH_DIR="${HOME}/.ssh"
 # The private key itself is kept off the bind-mounted home directory, in the
-# container's own filesystem — OpenSSH hard-fails unless the key file is
+# container's own filesystem - OpenSSH hard-fails unless the key file is
 # exactly 600, and some host filesystems the repo might be checked out onto
 # (e.g. an NTFS drive mounted via ntfs-3g) silently ignore chmod, always
 # reporting the same fixed permissions no matter what's requested. Keeping
@@ -13,7 +13,7 @@ SSH_DIR="${HOME}/.ssh"
 KEY_DIR="/opt/ssh-keys"
 KEY_FILE="${KEY_DIR}/id_ed25519"
 # OpenSSH resolves `~/.ssh/config` and `~/.ssh/known_hosts` from the passwd
-# database entry for the running UID, not from $HOME — deliberate OpenSSH
+# database entry for the running UID, not from $HOME - deliberate OpenSSH
 # hardening, unrelated to git (which does honor $HOME correctly). Ubuntu's
 # base image ships a built-in "ubuntu" user at UID 1000, which collides
 # with the near-universal first-user UID on a single-user Linux install, so
@@ -29,13 +29,13 @@ SUBMISSION_REPO_URLS=(
 SUBMISSION_DIR="${HOME}/submission"
 
 # /root (and everything cloned under it) is a bind mount from the host, so
-# its UID won't match the container's root user — Git's ownership check
+# its UID won't match the container's root user - Git's ownership check
 # would otherwise refuse to touch any repo in here.
 git config --global --add safe.directory '*' || true
 
 setup_git_ssh() {
     if [[ ! -f "${ENV_FILE}" ]]; then
-        echo "No ${ENV_FILE} found — skipping git/SSH setup (copy .env.example to .env to enable it)."
+        echo "No ${ENV_FILE} found - skipping git/SSH setup (copy .env.example to .env to enable it)."
         return 0
     fi
 
@@ -47,7 +47,7 @@ setup_git_ssh() {
 
     if [[ -n "${SSH_PRIVATE_KEY:-}" ]]; then
         # Containers are never reused (see build_in_docker.sh), so this
-        # directory is always empty at this point — no need to check for an
+        # directory is always empty at this point - no need to check for an
         # existing key, just (re)install fresh from the current .env every
         # time.
         mkdir -p "${KEY_DIR}"
@@ -72,7 +72,7 @@ setup_git_ssh() {
 
 clone_submission_repos() {
     if [[ ! -f "${KEY_FILE}" ]]; then
-        echo "No SSH key configured — skipping submission repo clones (set SSH_PRIVATE_KEY in .env to enable it)."
+        echo "No SSH key configured - skipping submission repo clones (set SSH_PRIVATE_KEY in .env to enable it)."
         return 0
     fi
 
@@ -97,8 +97,8 @@ clone_submission_repos() {
 # The container starts as root so it can do the one thing that genuinely
 # needs it: opening up the bind-mounted USB device nodes (owned by root on
 # the host) so the *unprivileged* shell below can still reach the Pico.
-# Everything else — git config, the SSH key, submission clones, and the
-# interactive shell itself — then runs as the student's own host UID/GID,
+# Everything else - git config, the SSH key, submission clones, and the
+# interactive shell itself - then runs as the student's own host UID/GID,
 # via a one-time re-exec of this same script under setpriv, so every file
 # created ends up owned by them on the host instead of by root (which they
 # can't delete/edit outside the container on a normal, non-sudo lab

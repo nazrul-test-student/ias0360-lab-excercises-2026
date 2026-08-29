@@ -2,6 +2,7 @@
 # Operating system files
 .DS_Store
 Thumbs.db
+.bash_history
 
 # IDE and editor files
 .idea/
@@ -39,15 +40,15 @@ build_*/
 /pico-sdk/
 /picotool/
 
-# Auto-cloned by entrypoint.sh on container start — a separate repo in its
+# Auto-cloned by entrypoint.sh on container start - a separate repo in its
 # own right, not part of this one.
 /submission/
 
-# Written by entrypoint.sh from SSH_PRIVATE_KEY in .env — contains a real
+# Written by entrypoint.sh from SSH_PRIVATE_KEY in .env - contains a real
 # private key, must never be committed.
 /.ssh/
 
 # Written by `git config --global` inside the container, since $HOME there
-# is this repo's root — holds your name/email, not a secret, but not part
+# is this repo's root - holds your name/email, not a secret, but not part
 # of this repo either.
 /.gitconfig

@@ -42,7 +42,7 @@ static void min_max_f32(const float* x, int n, float* mn, float* mx) {
     *mn = a; *mx = b;
 }
 
-// median (sorts a local copy; insertion sort — fine for small N)
+// median (sorts a local copy; insertion sort - fine for small N)
 static float median_f32(const float* x, int n) {
     float tmp[n];
     for (int i = 0; i < n; i++) tmp[i] = x[i];
