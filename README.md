@@ -16,7 +16,7 @@ cp .env.example .env
 - `GITHUB_USERNAME` — your GitHub username, for reference.
 - `SSH_PRIVATE_KEY` — an SSH private key (e.g. `cat ~/.ssh/id_ed25519`) authorized on your GitHub account, pasted in quotes exactly as it appears including the `BEGIN`/`END` lines.
 
-`.env` is gitignored — it holds a real private key once filled in, so never commit it. Every time the container starts, `entrypoint.sh` reads `.env` and, if present: sets your git identity, and installs the key at `~/.ssh/id_ed25519` with `700`/`600` permissions plus GitHub's host key in `known_hosts`, so `git clone git@github.com:...` works right away. It only writes the key file once (it won't overwrite an existing `~/.ssh/id_ed25519`), and it's skipped entirely if `.env` is missing.
+`.env` is gitignored — it holds a real private key once filled in, so never commit it. Every time the container starts, `entrypoint.sh` reads `.env` and, if present, sets your git identity and installs the key fresh with `600` permissions in the container's own filesystem (not on your disk — some host filesystems, e.g. NTFS drives, silently ignore `chmod` and would otherwise leave the key unusable). Git is pointed at it via `core.sshCommand`, plus GitHub's host key in `known_hosts`, so `git clone git@github.com:...` works right away. This is skipped entirely if `.env` is missing.
 
 Once the SSH key is in place, `entrypoint.sh` also clones your homework submission repos into `~/submission` — i.e. `submission/` in the repo root, since that's your home directory inside the container. `submission/` is just a holding folder: each repo below lands in its own subdirectory named after the repo, so they don't collide.
 

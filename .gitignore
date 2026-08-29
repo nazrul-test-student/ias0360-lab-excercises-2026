@@ -46,3 +46,8 @@ build_*/
 # Written by entrypoint.sh from SSH_PRIVATE_KEY in .env — contains a real
 # private key, must never be committed.
 /.ssh/
+
+# Written by `git config --global` inside the container, since $HOME there
+# is this repo's root — holds your name/email, not a secret, but not part
+# of this repo either.
+/.gitconfig
